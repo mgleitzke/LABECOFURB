@@ -1,0 +1,136 @@
+---
+title: "Matheus Gabriel Leitzke"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: load-packages
+#| include: false
+
+library(tidyverse)
+library(WDI)
+
+options(scipen = 999) # REMOVER A NOT. CIENT.
+# DADOS EM PAINEL
+terrasagropainel <- WDI(country = 'all',
+                    indicator = 'AG.LND.AGRI.K2')
+paises <- c('BR', 'US')
+
+terrasagropainelbrus <- WDI(country = paises,
+                    indicator = 'AG.LND.AGRI.K2')
+
+# CORTE TRANSVERSAL
+terrasagrotransversal <- WDI(country = 'all',
+                    indicator = 'AG.LND.AGRI.K2',
+                    start = 2021, end = 2021)
+
+# SÉRIE TEMPORAL
+terrasagrotemporal <- WDI(country = 'BR',
+                  indicator = 'AG.LND.AGRI.K2')
+```
+
+## VARIÁVEL
+
+Neste projeto, foi escolhida a variável que se refere às terras agrícolas ao redor do mundo. Terras agrícolas referem-se à parcela da área de terra que é arável, as mesmas constituem apenas uma parte da área total de qualquer país, que pode incluir áreas não adequadas para agricultura, como florestas, montanhas e corpos d'agua interiores.
+
+O indicador utilizado, usa como sua unidade de medida km² e buscou seus dados na Organização das Nações Unidas para Agriculutra e Alimentação, arquivos eletrônicos e site. O próprio indicador foi localizado por mim através do banco de dados mundial, "World Development Indicators", que localiza em seu site os mais diversos indicadores sobre diferentes assuntos.
+
+## GRÁFICO DE DADOS EM PAINEL
+
+Nesse gráfico está sendo apresentado por uma linha vermelha os dados relativos do Brasil ao longo dos anos, a partir de 1960 até o ultimo ano em que o banco de dados ainda possuia dados relatados. Os demais pontos azuis relatam todos os demais países do mundo, no mesmo período de tempo. É perceptível, portanto, uma tendência de crescimento moderado a constante ao longo do tempo na maioria dos países no mundo (pontilhados azuis), indicando que, em geral, a maior parte deles têm expandido suas áreas agrícolas nas últimas décadas.
+
+Outro fator importante é de que poucos países concentram áreas agrícolas muito grandes (na faixa de 30 a 50 milhões de km²), sendo grandes potências agrícolas como Estados Unidos, China, Índia e Rússia. Porém, a maioria dos países está concentrada abaixo de 10 milhões de km², evidenciando uma distribuição desigual das terras agrícolas no mundo. Outro detalhe importante a ser comentado, é de que algumas das linhas superiores mostram uma estabilização ou leve queda após os anos 2000, indicando que a expansão agrícola em certos países pode ter atingido um limite, seja por falta de terras disponíveis, políticas ambientais, ou transição para outros setores econômicos.
+
+```{r}
+#| label: graficodadosempainel
+#| warning: false
+#| echo: false
+dados_brasil <- terrasagropainel %>% filter(iso2c == "BR")
+ggplot(data = terrasagropainel, 
+                     mapping = aes(x = year, y = AG.LND.AGRI.K2, group = country)) +
+  geom_point(color = "blue", size = 0.4, alpha = 0.5) +
+  geom_line(data = dados_brasil, aes(x = year, y = AG.LND.AGRI.K2), 
+            color = "red", size = 1.2) +  # Linha do Brasil
+  labs(
+    title = "Evolução das Terras Agrícolas por País",
+    x = "Ano",
+    y = "Terras agrícolas (km²)"
+  ) +
+  theme_minimal(base_family = "Helvetica") +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", color = "#333333"),
+    axis.title = element_text(size = 12, color = "#444444"),
+    axis.text = element_text(size = 10),
+    legend.position = "none"
+  )
+```
+
+## GRÁFICO DE DADOS DE CORTE TRANSVERSAL
+
+No gráfico de corte transversal, os dados mundiais são destacados em apenas um ano, que nesse caso corresponde a 2021. Aos mesmos moldes do gráfico com dados em painel, o brasil segue destacado em vermelho. Neste modelo, fica muito mais evidente de como as terras estão concentradas na mão de poucos líderes, já que, no gráfico, pode-se perceber que a partir de 20 milhões de km², se tem apenas 5 países. Esse fato é de extrema importancia e deve ser sempre visto com cautela, pois a concentração de terras em poucos países (ou em poucos indivíduos/empresas dentro de um país) gera um conjunto de problemas, desde a falta de acesso à terra e à renda para a população, até conflitos por terras e impactos ambientais
+
+```{r}
+#| label: graficocortetransversal 
+#| warning: false 
+#| echo: false  
+
+terras_2021 <- terrasagrotransversal %>%
+  filter(year == 2021) %>%
+  select(country, iso2c, AG.LND.AGRI.K2, year)
+dados_brasil <- terras_2021 %>% filter(iso2c == "BR")
+ggplot(data = terras_2021, 
+       aes(x = as.factor(year), y = AG.LND.AGRI.K2, group = country)) +
+  geom_point(color = "blue", size = 0.7, alpha = 0.5) +
+  geom_point(data = dados_brasil, aes(x = as.factor(year), y = AG.LND.AGRI.K2), 
+             color = "red", size = 1.6) +
+  labs(
+    title = "Terras Agrícolas por País - 2021",
+    x = "Ano",
+    y = "Terras agrícolas (km²)"
+  ) +
+  theme_minimal(base_family = "Helvetica") +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", color = "#333333"),
+    axis.title = element_text(size = 12, color = "#444444"),
+    axis.text = element_text(size = 10),
+    legend.position = "none"
+  )
+```
+
+## GRÁFICO DE DADOS DE SÉRIE TEMPORAL
+
+No gráfico de série temporal, a visualização fica muito mais simples e compreensível. O gráfico evidencia que o Brasil tem expandido sua área agrícola de forma constante e significativa ao longo das décadas, acompanhando uma tendência mundial, mas sem os mesmos picos observados em alguns países. Apesar disso, mantém-se como um ator importante no cenário agrícola global. A análise visual dos gráficos anteriores sugere que, enquanto outros países já estão estabilizando ou desacelerando o crescimento agrícola, o Brasil segue uma trajetória contínua, o que levanta discussões sobre políticas de uso da terra, meio ambiente e sustentabilidade.
+
+```{r}
+#| label: graficoserietemporal 
+#| warning: false  
+#| echo: false 
+   ggplot(data = terrasagrotemporal, 
+                       mapping = aes(x = year,
+                                     y = AG.LND.AGRI.K2, color = country)) +
+geom_line(alpha = 0.6) +
+  geom_line(data = subset(terrasagrotemporal, country == 'Brazil'), 
+            aes(x = year, y = AG.LND.AGRI.K2), 
+            color = 'red', size = 1.1) +
+  labs(
+    title = "Terras Agrícolas (km²)",
+    x = "Ano",
+    y = "Terra agrícola (km²)",
+    color = NULL
+  ) +
+  
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = "bold", color = "black"),
+    axis.title.x = element_text(size = 12, color = "black"),
+    axis.title.y = element_text(size = 12, color = "black"),
+    axis.text.x = element_text(size = 10, color = "black"),
+    axis.text.y = element_text(size = 10, color = "black"),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(color = "gray90", size = 0.5),
+    panel.grid.minor = element_blank(),
+    plot.background = element_rect(fill = "white"),
+    legend.position = "none"
+  )
+```
